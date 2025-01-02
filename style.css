@@ -1,0 +1,122 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.cell{
+    width:32px;
+    height:32px;
+}
+.row{
+    display: flex;
+}
+
+.grid{
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    width: 512px;
+    border: 2px solid #333;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.farmland{
+    background-color: #fff2a8;
+    /* padding: 20px; */
+    /* margin-top: 20px; */
+    border-radius: 5px;
+}
+.ground{
+    background-color: #eeffb0;
+    /* padding: 20px; */
+    /* margin-top: 20px; */
+    border-radius: 5px;
+}
+.water{
+    background-color: #b3e0ff;
+    /* padding: 20px; */
+    /* margin-top: 20px; */
+    border-radius: 5px;
+}
+.cell.farmland {
+    background-color: #d2b48c; /* Farmland color */
+}
+
+.cell.crop {
+    font-weight: bold;
+    text-align: center;
+    line-height: 50px; /* Match the tile size */
+}
+#inventory{
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    width: 512px;
+    border: 2px solid #333;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid black;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    text-align: center;
+}
+
+.dialog button {
+    margin: 10px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dialog label {
+    display: block;
+    margin-top: 10px;
+}
+
+.dialog select {
+    margin: 10px 0;
+    padding: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+#shop {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid black;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    text-align: center;
+}
+
+#shop button {
+    margin: 10px;
+    padding: 10px;
+    cursor: pointer;
+}
+.dialog span {
+    display: block;
+    margin: 5px 0;
+    font-weight: bold;
+}
+
+.dialog .mastery {
+    color: green;
+    margin-left: 10px;
+}
