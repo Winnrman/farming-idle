@@ -5,8 +5,8 @@ let inventory = {
   "carrot seeds": 2,
   "potato seeds": 1,
   "corn seeds": 3,
-  corn: 0,
-  wheat: 0,
+  corn: 10,
+  wheat: 30,
   carrot: 0,
   potato: 0,
   eggplant: 0,
@@ -22,6 +22,7 @@ const cropPrices = {
 
 const itemPrices = {
   sprinkler: 50,
+  'bag of dirt': 120, //allows you to turn a water tile into a ground tile
 };
 
 const cropConfig = {
@@ -85,11 +86,11 @@ function updateInventory() {
 function generateGrid() {
   let grid = document.getElementById("grid");
   grid.innerHTML = ""; // Clear any existing grid
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 5; i++) {
     // Loop to create 4 rows
     let row = document.createElement("div");
     row.classList.add("row");
-    for (let j = 0; j < 4; j++) {
+    for (let j = 0; j < 5; j++) {
       // Loop to create 4 cells in each row
       let cell = document.createElement("div");
       cell.classList.add("cell");
@@ -257,6 +258,36 @@ function handleTileClick(tile) {
       dialog.remove(); // Close dialog
     });
     actions.appendChild(hoeButton);
+
+    const sprinklerButton = document.createElement("button");
+    sprinklerButton.textContent = "Sprinkler";
+    sprinklerButton.addEventListener("click", () => {
+      runCommand(`addSprinkler ${coords}`);
+      dialog.remove(); // Close dialog
+    });
+    if(inventory["sprinkler"] <= 0) {
+      sprinklerButton.disabled = true;
+      actions.appendChild(sprinklerButton);
+    }
+    else{
+      actions.appendChild(sprinklerButton);
+    }
+
+    const bagOfDirtButton = document.createElement("button");
+    bagOfDirtButton.textContent = "Bag of Dirt";
+    bagOfDirtButton.addEventListener("click", () => {
+      runCommand(`addBagofDirt ${coords}`);
+      dialog.remove(); // Close dialog
+    });
+    if(balance < itemPrices["bag of dirt"]) {
+      bagOfDirtButton.disabled = true;
+      actions.appendChild(bagOfDirtButton);
+    }
+    else{
+      actions.appendChild(bagOfDirtButton);
+    }
+    
+
   }
 
   if (tileType === "farmland" && crop === "None") {
@@ -453,42 +484,48 @@ function runCommand(command) {
     let coords = args[0];
     let tiles = document.getElementsByClassName("cell");
     for (let i = 0; i < tiles.length; i++) {
-      let tile = tiles[i];
-      if (tile.id === coords) {
-        if (!tile.classList.contains("ground")) {
-          console.log(`Tile ${coords} is not ground. Cannot hoe.`);
-          return;
+        let tile = tiles[i];
+        if (tile.id === coords) {
+            if (!tile.classList.contains("ground")) {
+                console.log(`Tile ${coords} is not ground. Cannot hoe.`);
+                return;
+            }
+            if(tile.classList.contains("sprinkler")) {
+                console.log(`Tile ${coords} has a sprinkler. Cannot hoe.`);
+                return;
+            }
+
+            // Check if there is water or a sprinkler nearby
+            let x = parseInt(coords[0]);
+            let y = parseInt(coords[1]);
+            let nearbyWaterOrSprinkler = false;
+            let nearbyTiles = [
+                `${x - 1}${y}`,
+                `${x + 1}${y}`,
+                `${x}${y - 1}`,
+                `${x}${y + 1}`,
+            ];
+            for (let j = 0; j < nearbyTiles.length; j++) {
+                let nearbyTile = document.getElementById(nearbyTiles[j]);
+                if (nearbyTile && (nearbyTile.classList.contains("water") || nearbyTile.classList.contains("sprinkler"))) {
+                    // Check if tile exists and is water or sprinkler
+                    nearbyWaterOrSprinkler = true;
+                    break;
+                }
+            }
+            if (!nearbyWaterOrSprinkler) {
+                console.log(`Tile ${coords} is not near water or a sprinkler. Cannot hoe.`);
+                return;
+            }
+            tile.classList.remove("ground");
+            tile.classList.add("farmland");
+            console.log(`Hoe'd tile ${coords}.`);
+            return { coords: coords };
         }
-        // Check if there is water nearby
-        let x = parseInt(coords[0]);
-        let y = parseInt(coords[1]);
-        let nearbyWater = false;
-        let nearbyTiles = [
-          `${x - 1}${y}`,
-          `${x + 1}${y}`,
-          `${x}${y - 1}`,
-          `${x}${y + 1}`,
-        ];
-        for (let j = 0; j < nearbyTiles.length; j++) {
-          let nearbyTile = document.getElementById(nearbyTiles[j]);
-          if (nearbyTile && nearbyTile.classList.contains("water")) {
-            // Check if tile exists and is water
-            nearbyWater = true;
-            break;
-          }
-        }
-        if (!nearbyWater) {
-          console.log(`Tile ${coords} is not near water. Cannot hoe.`);
-          return;
-        }
-        tile.classList.remove("ground");
-        tile.classList.add("farmland");
-        console.log(`Hoe'd tile ${coords}.`);
-        return { coords: coords };
-      }
     }
     console.log(`Tile ${coords} not found.`);
-  }
+}
+
   if (cmd == "harvest") {
     let coords = args[0];
     let tiles = document.getElementsByClassName("cell");
@@ -528,14 +565,48 @@ function runCommand(command) {
 
   if (cmd == "inventory") {
     console.log(inventory);
-  } else {
+  }
+  if(cmd == 'addSprinkler') {
+    //check that sprinkler is an item in the player's inventory
+    if (!inventory["sprinkler"] || inventory["sprinkler"] <= 0) {
+      console.log(`You don't have any sprinklers to add.`);
+      return;
+    }
+    let coords = args[0];
+    let tiles = document.getElementsByClassName("cell");
+    for (let i = 0; i < tiles.length; i++) {
+      let tile = tiles[i];
+      if (tile.id === coords) {
+        if (!tile.classList.contains("ground")) {
+          console.log(`Tile ${coords} is not ground. Cannot add sprinkler.`);
+          return;
+        }
+        tile.classList.add("sprinkler");
+        tile.textContent = "S";
+        console.log(`Added sprinkler to tile ${coords}.`);
+        return { coords: coords };
+      }
+    }
+    console.log(`Tile ${coords} not found.`);
+  }
+  
+  else {
     console.log("Invalid command!");
   }
 }
 
 function getFarmSeed() {
   //the seed is the numeric value of the grid, multiplied by a random number
-  let seed = Math.floor(Math.random() * 1000);
+  let seed = "";
+  for(let i = 0; i < 4; i++) {
+    for(let j = 0; j < 4; j++) {
+      seed += document.getElementById(`${i}${j}`).classList.contains("water") ? "0" : "1";
+      seed += document.getElementById(`${i}${j}`).classList.contains("farmland") ? "0" : "2";
+      seed += document.getElementById(`${i}${j}`).classList.contains("ground") ? "0" : "3";
+
+    }
+    
+  }
   return seed;
 }
 
@@ -549,7 +620,7 @@ function buyItem(item) {
     balance -= itemPrices[item]; // Deduct money from balance
     inventory[item] = (inventory[item] || 0) + 1; // Add item to inventory
     console.log(`Purchased 1 ${item} for $${itemPrices[item]}.`);
-    updateShopInventory(); // Refresh shop UI
+    // updateShopInventory(); // Refresh shop UI
     updateInventory(); // Refresh inventory UI
   } else {
     console.log(`You don't have enough money to buy ${item}.`);
@@ -557,6 +628,11 @@ function buyItem(item) {
 }
 
 function openShop() {
+//close any active shop dialog
+    if (document.querySelector(".dialog")) {
+        document.querySelector(".dialog").remove();
+    }
+
   const shopDialog = document.createElement("div");
   shopDialog.classList.add("dialog");
   shopDialog.innerHTML = `
@@ -586,7 +662,8 @@ function openShop() {
 
     document.getElementById(`sell${crop}`).addEventListener("click", () => {
       sellCrop(crop);
-      updateShopInventory();
+      openShop(); // Refresh shop UI
+    //   updateShopInventory();
     });
   }
 
@@ -618,33 +695,33 @@ function closeShop() {
 }
 
 // Update Shop Inventory
-function updateShopInventory() {
-  const shopInventory = document.getElementById("shopInventory");
-  const balanceDisplay = document.getElementById("balance");
+// function updateShopInventory() {
+//   const shopInventory = document.getElementById("shopInventory");
+//   const balanceDisplay = document.getElementById("balance");
 
-  shopInventory.innerHTML = ""; // Clear previous inventory
-  balanceDisplay.textContent = `Balance: $${balance}`;
+//   shopInventory.innerHTML = ""; // Clear previous inventory
+//   balanceDisplay.textContent = `Balance: $${balance}`;
 
-  for (let crop in inventory) {
-    if (inventory[crop] > 0) {
-      //check if crop is a seed. If so, skip it
-      if (crop.includes("seeds")) {
-        continue;
-      }
-      const cropDiv = document.createElement("div");
-      cropDiv.textContent = `${crop.charAt(0).toUpperCase() + crop.slice(1)}: ${
-        inventory[crop]
-      } available (Sell for $${cropPrices[crop]} each)`;
+//   for (let crop in inventory) {
+//     if (inventory[crop] > 0) {
+//       //check if crop is a seed. If so, skip it
+//       if (crop.includes("seeds")) {
+//         continue;
+//       }
+//       const cropDiv = document.createElement("div");
+//       cropDiv.textContent = `${crop.charAt(0).toUpperCase() + crop.slice(1)}: ${
+//         inventory[crop]
+//       } available (Sell for $${cropPrices[crop]} each)`;
 
-      const sellButton = document.createElement("button");
-      sellButton.textContent = `Sell ${crop}`;
-      sellButton.addEventListener("click", () => sellCrop(crop));
+//       const sellButton = document.createElement("button");
+//       sellButton.textContent = `Sell ${crop}`;
+//       sellButton.addEventListener("click", () => sellCrop(crop));
 
-      cropDiv.appendChild(sellButton);
-      shopInventory.appendChild(cropDiv);
-    }
-  }
-}
+//       cropDiv.appendChild(sellButton);
+//       shopInventory.appendChild(cropDiv);
+//     }
+//   }
+// }
 
 // Sell Crops
 function sellCrop(crop) {
@@ -652,7 +729,7 @@ function sellCrop(crop) {
     balance += cropPrices[crop]; // Add money to balance
     inventory[crop]--; // Decrease crop count
     console.log(`Sold 1 ${crop} for $${cropPrices[crop]}.`);
-    updateShopInventory(); // Refresh shop UI
+    // updateShopInventory(); // Refresh shop UI
     updateInventory(); // Refresh inventory UI
   } else {
     console.log(`You don't have any ${crop} to sell.`);

@@ -34,6 +34,11 @@
     /* margin-top: 20px; */
     border-radius: 5px;
 }
+.ground:hover{
+    background-color: #daff56;
+    /* border:1px solid #a6ff52; */
+    cursor:pointer;
+}
 .water{
     background-color: #b3e0ff;
     /* padding: 20px; */
@@ -48,6 +53,14 @@
     font-weight: bold;
     text-align: center;
     line-height: 50px; /* Match the tile size */
+}
+.cell.sprinkler{
+    /* background-color: #b3e0ff; */
+    /* padding: 20px; */
+    /* margin-top: 20px; */
+    font-weight:bold;
+    text-align:center;
+    /* border-radius: 5px; */
 }
 #inventory{
     display: flex;
